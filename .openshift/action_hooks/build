@@ -1,0 +1,5 @@
+#!/bin/bash
+echo Building TS files to JS
+cd $OPENSHIFT_REPO_DIR
+npm install typescript
+make
