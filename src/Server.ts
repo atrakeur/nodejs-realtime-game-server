@@ -9,7 +9,7 @@ export class Server {
 
     private config: AppConfig;
     private http  : Http.Server;
-    private io    : SocketIOClient.Socket;
+    private io    : SocketIO.Server;
 
     public constructor(config: AppConfig)
     {
