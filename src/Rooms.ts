@@ -1,3 +1,5 @@
+/// <reference path="./Contracts/AppConfig.ts" />
+
 export class RoomList {
 
     private config: AppConfig;

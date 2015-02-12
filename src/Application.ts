@@ -1,7 +1,8 @@
 /// <reference path="../def/node/node.d.ts" />
 /// <reference path="../def/socket.io/socket.io.d.ts" />
 /// <reference path="../def/request/request.d.ts" />
-/// <reference path="./AppConfig.ts" />
+
+/// <reference path="./Contracts/AppConfig.ts" />
 import Request = require("request");
 import Server = require("./Server");
 import Rooms  = require("./Rooms");

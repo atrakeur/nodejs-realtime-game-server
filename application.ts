@@ -8,3 +8,4 @@ var config = {
 };
 
 var application = new Application.Application(config);
+application.start();
