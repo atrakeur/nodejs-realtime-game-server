@@ -7,15 +7,16 @@
 	},
 
 	"scripts": {  
-		"start": "node src/application.js"
+		"start": "node application.js"
 	},
 
 	"dependencies": {
-		"socket.io": "1.3.3"
+		"socket.io": "1.3.3",
+	  	"request"  : "2.53.0"
 	},
 	"devDependencies": {},
 	"bundleDependencies": [],
 
 	"private": true,
-	"main": "src/application.js"
+	"main": "application.js"
 }

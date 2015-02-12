@@ -3,6 +3,5 @@
 Thumbs.db
 /.vagrant
 database.json
-/.openshift
 /node_modules
 *.js
