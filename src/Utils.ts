@@ -5,6 +5,8 @@ import querystring = require('querystring');
 
 export class Crypto {
 
+    public static debug: boolean = false;
+
     public static urldecrypt(url_string: string, secret: string) {
         //Extract data from url
         var parsed_url = url.parse(url_string);
@@ -15,14 +17,16 @@ export class Crypto {
         var signature = this.base64_encode(Crypto.signString(decoded_json, secret));
         var encoded_signature = querystring.unescape(query_components.key);
 
-        console.log();
-        console.log("json: "+decoded_json);
-        console.log("sign: "+signature);
-        console.log("sign: "+encoded_signature);
+        if (this.debug) {
+            console.log();
+            console.log("json: "+decoded_json);
+            console.log("sign: "+signature);
+            console.log("sign: "+encoded_signature);
+        }
 
         //If calculated signature is valid with given signature
         if(signature == encoded_signature) {
-            return decoded_json;
+            return JSON.parse(decoded_json);
         } else {
             throw new Error("Invalid private key");
         }
@@ -49,9 +53,11 @@ export class Crypto {
 
         var encoded_payload = this.base64_encode(json_payload);
 
-        console.log();
-        console.log("json: "+json_payload);
-        console.log("sign: "+signature);
+        if (this.debug) {
+            console.log();
+            console.log("json: " + json_payload);
+            console.log("sign: " + signature);
+        }
 
         return "data="+encoded_payload+"&key="+signature;
     }

@@ -22,6 +22,7 @@ export class RoomList extends Server.ServerComponent {
     public createRoom(hash: string): Room {
         var room = new Room(hash);
         this.rooms[hash] = room;
+        console.log("Room "+hash+" created!");
         return room;
     }
 
@@ -33,7 +34,12 @@ export class RoomList extends Server.ServerComponent {
         delete this.rooms[hash];
     }
 
-    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: any): boolean {
+    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: Message<any>): any {
+        if (data.name == "Room_create") {
+            this.createRoom(data.data.roomName);
+            return true;
+        }
+
         return false;
     }
     handleConnect(socket:SocketIO.Socket):boolean {

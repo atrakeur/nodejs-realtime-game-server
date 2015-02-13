@@ -49,17 +49,30 @@ export class Server {
     }
 
     handleHttp = (request: Http.ServerRequest, responce: Http.ServerResponse) => {
-        var data = Utils.Crypto.urldecrypt(request.url, this.config.secure_key);
+        var data = <Message<any>> Utils.Crypto.urldecrypt(request.url, this.config.secure_key);
         console.log(data);
 
         for (var i = 0; i < this.components.length; i++) {
             var component: IServerComponent = this.components[i];
+            var newResponce = component.handleHttp(request, responce, data);
 
-            if (component.handleHttp(request, responce, data)) {
-                return responce.end();
+            //Component returned a customised responce
+            if (responce === newResponce)
+            {
+                responce.end();
+                return;
+            }
+            //Component returned a default responce
+            else if (newResponce === true)
+            {
+                responce.writeHead(200);
+                responce.write("OK");
+                responce.end();
+                return;
             }
         }
 
+        //No component returned a responce
         responce.writeHead(404);
         responce.write("Not found");
         responce.end();
@@ -113,7 +126,7 @@ interface IServerComponent {
      * @param request
      * @param responce
      */
-    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: any): boolean;
+    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: Message<any>): any;
 
     /**
      * Handle a socket connection
@@ -136,7 +149,7 @@ interface IServerComponent {
 }
 
 export class ServerComponent implements IServerComponent {
-    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: any): boolean {
+    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: Message<any>): any {
         return false;
     }
     handleConnect(socket:SocketIO.Socket):boolean {
