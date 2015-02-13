@@ -12,47 +12,136 @@ export class Server {
     private http  : Http.Server;
     private io    : SocketIO.Server;
 
-    public constructor(config: AppConfig)
-    {
+    private components: IServerComponent[];
+
+    public constructor(config: AppConfig) {
         this.config = config;
 
         this.http = Http.createServer(this.handleHttp);
+        this.components = [];
+
         console.log("Server created");
     }
 
-    public start()
-    {
+    public start() {
         this.http.listen(this.config.port, this.config.address);
         this.io   = Socket.listen(this.http);
 
         this.io.on('connect', this.handleConnect);
-        this.io.on('message', this.handleMessage);
-        this.io.on('disconnect', this.handleDisconnect);
-
         console.log("Listening on "+this.config.address+":"+this.config.port);
     }
 
-    public stop()
-    {
+    public stop() {
         this.http.close();
     }
 
-    public handleHttp = (request: Http.ServerRequest, responce: Http.ServerResponse) => {
-        //TODO decode request, executeAction, and respond
-        responce.write("Welcome!");
+    public addComponent(component: IServerComponent) {
+        this.components.push(component);
+    }
+
+    public deleteComponent(component: IServerComponent) {
+        var index = this.components.indexOf(component);
+        if (index >= 0 && index < this.components.length) {
+            this.components.splice(index, 1);
+        }
+    }
+
+    handleHttp = (request: Http.ServerRequest, responce: Http.ServerResponse) => {
+        //TODO add request decrypt
+
+        for (var i = 0; i < this.components.length; i++) {
+            var component: IServerComponent = this.components[i];
+
+            if (component.handleHttp(request, responce)) {
+                return responce.end();
+            }
+        }
+
+        responce.writeHead(404);
+        responce.write("Not found");
         responce.end();
     }
 
-    public handleConnect = (socket: SocketIO.Socket) => {
-        console.log("Connect" + socket.id);
+    handleConnect = (socket: SocketIO.Socket) => {
+        console.log("Connect " + socket.id);
+        socket.on('message', this.handleMessage);
+        socket.on('disconnect', this.handleDisconnect);
+
+        for (var i = 0; i < this.components.length; i++) {
+            var component: IServerComponent = this.components[i];
+
+            if (component.handleConnect(socket)) {
+                return;
+            }
+        }
     }
 
-    public handleDisconnect = (socket: SocketIO.Socket) => {
-        console.log("Disconnect" + socket.id);
+    handleDisconnect = (socket: SocketIO.Socket) => {
+        console.log("Disconnect " + socket.id);
+
+        for (var i = 0; i < this.components.length; i++) {
+            var component: IServerComponent = this.components[i];
+
+            if (component.handleDisconnect(socket)) {
+                return;
+            }
+        }
     }
 
-    public handleMessage = (message: any) => {
+    handleMessage = (message: any) => {
         console.log("Message" + message);
+
+        for (var i = 0; i < this.components.length; i++) {
+            var component: IServerComponent = this.components[i];
+
+            if (component.handleMessage(message)) {
+                return;
+            }
+        }
     }
 
+}
+
+interface IServerComponent {
+
+    /**
+     * Handle an http request
+     * @param request
+     * @param responce
+     */
+    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse): boolean;
+
+    /**
+     * Handle a socket connection
+     * @param socket
+     */
+    handleConnect(socket: SocketIO.Socket): boolean;
+
+    /**
+     * Handle a socket disconnect
+     * @param socket
+     */
+    handleDisconnect(socket: SocketIO.Socket): boolean;
+
+    /**
+     * Handle a socket message
+     * @param message
+     */
+    handleMessage(message: any): boolean;
+
+}
+
+export class ServerComponent implements IServerComponent {
+    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse): boolean {
+        return false;
+    }
+    handleConnect(socket:SocketIO.Socket):boolean {
+        return false;
+    }
+    handleDisconnect(socket:SocketIO.Socket):boolean {
+        return false;
+    }
+    handleMessage(message:any):boolean {
+        return false;
+    }
 }

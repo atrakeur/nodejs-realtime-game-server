@@ -1,12 +1,18 @@
 /// <reference path="./Contracts/AppConfig.ts" />
 
-export class RoomList {
+import Http = require("http");
+
+import Server = require("./Server");
+
+export class RoomList extends Server.ServerComponent {
 
     private config: AppConfig;
 
     private rooms: Room[];
 
     constructor(config: AppConfig) {
+        super();
+
         this.config = config;
 
         this.rooms = [];
@@ -24,6 +30,19 @@ export class RoomList {
 
     public deleteRoom(hash: string): void {
         delete this.rooms[hash];
+    }
+
+    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse): boolean {
+        return false;
+    }
+    handleConnect(socket:SocketIO.Socket):boolean {
+        return false;
+    }
+    handleDisconnect(socket:SocketIO.Socket):boolean {
+        return false;
+    }
+    handleMessage(message:any):boolean {
+        return false;
     }
 
 }

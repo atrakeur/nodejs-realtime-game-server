@@ -1,10 +1,18 @@
-export class PlayerList {
+/// <reference path="./Contracts/AppConfig.ts" />
+
+import Http = require("http");
+
+import Server = require("./Server");
+
+export class PlayerList extends Server.ServerComponent {
 
     private config: AppConfig;
 
     private players: Player[];
 
     constructor(config: AppConfig) {
+        super();
+
         this.config = config;
 
         this.players = [];
@@ -22,6 +30,20 @@ export class PlayerList {
 
     public deletePlayer(hash: string): void {
         delete this.players[hash];
+    }
+
+    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse): boolean {
+        return false;
+    }
+    handleConnect(socket:SocketIO.Socket):boolean {
+        return false;
+    }
+    handleDisconnect(socket:SocketIO.Socket):boolean {
+        return false;
+    }
+    handleMessage(message:any):boolean {
+        console.log(JSON.stringify(message));
+        return true;
     }
 
 }
