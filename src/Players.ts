@@ -33,7 +33,7 @@ export class PlayerList extends Server.ServerComponent {
         delete this.players[hash];
     }
 
-    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse): boolean {
+    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: any): boolean {
         return false;
     }
     handleConnect(socket:SocketIO.Socket):boolean {
@@ -43,7 +43,7 @@ export class PlayerList extends Server.ServerComponent {
         return false;
     }
     handleMessage(message: Message<any>):boolean {
-        return true;
+        return false;
     }
 
 }

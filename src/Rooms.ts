@@ -33,7 +33,7 @@ export class RoomList extends Server.ServerComponent {
         delete this.rooms[hash];
     }
 
-    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse): boolean {
+    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: any): boolean {
         return false;
     }
     handleConnect(socket:SocketIO.Socket):boolean {

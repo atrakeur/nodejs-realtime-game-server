@@ -6,6 +6,9 @@
 
 import Http = require("http");
 import Socket = require("socket.io");
+import Url = require('url');
+
+import Utils = require("./Utils");
 
 export class Server {
 
@@ -46,12 +49,13 @@ export class Server {
     }
 
     handleHttp = (request: Http.ServerRequest, responce: Http.ServerResponse) => {
-        //TODO add request decrypt
+        var data = Utils.Crypto.urldecrypt(request.url, this.config.secure_key);
+        console.log(data);
 
         for (var i = 0; i < this.components.length; i++) {
             var component: IServerComponent = this.components[i];
 
-            if (component.handleHttp(request, responce)) {
+            if (component.handleHttp(request, responce, data)) {
                 return responce.end();
             }
         }
@@ -109,7 +113,7 @@ interface IServerComponent {
      * @param request
      * @param responce
      */
-    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse): boolean;
+    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: any): boolean;
 
     /**
      * Handle a socket connection
@@ -132,7 +136,7 @@ interface IServerComponent {
 }
 
 export class ServerComponent implements IServerComponent {
-    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse): boolean {
+    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: any): boolean {
         return false;
     }
     handleConnect(socket:SocketIO.Socket):boolean {
