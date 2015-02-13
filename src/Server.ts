@@ -2,6 +2,7 @@
 /// <reference path="../def/socket.io/socket.io.d.ts" />
 
 /// <reference path="./Contracts/AppConfig.ts" />
+/// <reference path="./Contracts/Message.ts" />
 
 import Http = require("http");
 import Socket = require("socket.io");
@@ -19,8 +20,6 @@ export class Server {
 
         this.http = Http.createServer(this.handleHttp);
         this.components = [];
-
-        console.log("Server created");
     }
 
     public start() {
@@ -65,7 +64,10 @@ export class Server {
     handleConnect = (socket: SocketIO.Socket) => {
         console.log("Connect " + socket.id);
         socket.on('message', this.handleMessage);
-        socket.on('disconnect', this.handleDisconnect);
+        socket.on('disconnect', () => {
+            //Workaround to pass the correct socket to handleDisconnect
+            this.handleDisconnect(socket);
+        });
 
         for (var i = 0; i < this.components.length; i++) {
             var component: IServerComponent = this.components[i];
@@ -88,9 +90,7 @@ export class Server {
         }
     }
 
-    handleMessage = (message: any) => {
-        console.log("Message" + message);
-
+    handleMessage = (message: Message<any>) => {
         for (var i = 0; i < this.components.length; i++) {
             var component: IServerComponent = this.components[i];
 

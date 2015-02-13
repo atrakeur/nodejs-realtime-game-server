@@ -1,4 +1,5 @@
 /// <reference path="./Contracts/AppConfig.ts" />
+/// <reference path="./Contracts/Message.ts" />
 
 import Http = require("http");
 
@@ -41,7 +42,7 @@ export class RoomList extends Server.ServerComponent {
     handleDisconnect(socket:SocketIO.Socket):boolean {
         return false;
     }
-    handleMessage(message:any):boolean {
+    handleMessage(message: Message<any>):boolean {
         return false;
     }
 
