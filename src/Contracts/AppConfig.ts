@@ -13,8 +13,4 @@ interface AppConfig
      * Secure key to use for private communication
      */
     secure_key: string;
-    /**
-     * Url to use for configuration
-     */
-    config_url: string;
 }

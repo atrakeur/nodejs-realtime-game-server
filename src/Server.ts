@@ -61,6 +61,8 @@ export class Server {
             return Utils.Http.write(responce, 400, JSON.stringify(error));
         }
 
+        console.log(data);
+
         for (var i = 0; i < this.components.length; i++) {
             var component: IServerComponent = this.components[i];
             var newResponce = component.handleHttp(request, responce, data);
