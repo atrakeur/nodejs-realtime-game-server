@@ -1,11 +1,12 @@
 /**
- * JSON type interface for RoomConfiguraton
- * Send on Room creation
+ * JSON type interface for Room Configuraton
+ * Send on
+ *      - Room_create
+ *      - Room_delete (hash only)
  */
 interface RoomConfig {
 
     hash: string;
-
     callbackUrl : string;
 
 }

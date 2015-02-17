@@ -117,7 +117,7 @@ interface IServerComponent {
      * Handle a socket connection
      * @param socket
      */
-    handleSocket(socket: SocketIO.Socket);
+    handleSocket(socket: SocketIO.Socket): void;
 
     /**
      * Handle a watchdog event (bookkeeping)
@@ -131,8 +131,7 @@ export class ServerComponent implements IServerComponent {
     handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: Message<any>): any {
         return false;
     }
-    handleSocket(socket:SocketIO.Socket) {
-        return false;
+    handleSocket(socket:SocketIO.Socket): void {
     }
     handleWatchdog(counter: number) {
     }

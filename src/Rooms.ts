@@ -2,10 +2,18 @@
 /// <reference path="./Contracts/Message.ts" />
 /// <reference path="./Contracts/RoomConfig.ts" />
 
-import Http   = require("http");
-import Server = require("./Server");
-import Utils  = require("./Utils");
+import Http    = require("http");
+import App     = require("./Application");
+import Server  = require("./Server");
+import Players = require("./Players");
+import Utils   = require("./Utils");
 
+/**
+ * Manages room list
+ *
+ * @event Room_created
+ * @event Room_deleted
+ */
 export class RoomList extends Server.ServerComponent {
 
     private config: AppConfig;
@@ -18,6 +26,13 @@ export class RoomList extends Server.ServerComponent {
         this.config = config;
 
         this.rooms = new Utils.Map<string, Room>();
+
+        Utils.Observable.getInstance().addListener("Player_connected", (player: Players.Player) => {
+            this.joinPlayer(player.config.room, player);
+        });
+        Utils.Observable.getInstance().addListener("Player_disconnected", (player: Players.Player) => {
+            this.unjoinPlayer(player.config.room, player);
+        });
     }
 
     public createRoom(config: RoomConfig): Room {
@@ -28,6 +43,8 @@ export class RoomList extends Server.ServerComponent {
         var room = new Room(config);
         this.rooms.add(config.hash, room);
         room.onCreate();
+
+        Utils.Observable.getInstance().dispatch("Room_created", room);
 
         return room;
     }
@@ -41,10 +58,36 @@ export class RoomList extends Server.ServerComponent {
 
         if (room != null) {
             room.onDelete();
+
+            Utils.Observable.getInstance().dispatch("Room_deleted", room);
+
             this.rooms.remove(hash);
         }
+    }
 
-        return room;
+    public joinPlayer(roomHash: string, player: Players.Player) {
+        var room: Room = this.rooms.get(roomHash);
+
+        if (room == null) {
+            throw new Error("Can't find room "+roomHash);
+        }
+
+        room.players.add(player.getID(), player);
+
+        Utils.Observable.getInstance().dispatch("Room_joined", {room: room, player: player});
+    }
+
+    public unjoinPlayer(roomHash: string, player: Players.Player) {
+        var roomHash: string = player.getID();
+        var room: Room = this.rooms.get(roomHash);
+
+        if (room == null) {
+            throw new Error("Can't find room "+roomHash);
+        }
+
+        room.players.remove(player.getID());
+
+        Utils.Observable.getInstance().dispatch("Room_unjoined", {room: room, player: player});
     }
 
     handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, message: Message<RoomConfig>): any {
@@ -52,12 +95,14 @@ export class RoomList extends Server.ServerComponent {
             this.createRoom(message.data);
             return true;
         }
+        if (message.name == "Room_delete") {
+            this.deleteRoom(message.data.hash);
+            return true;
+        }
 
         return false;
     }
-    handleSocket(socket:SocketIO.Socket):boolean {
-        return false;
-    }
+
     handleWatchdog(counter: number) {
     }
 
@@ -65,18 +110,26 @@ export class RoomList extends Server.ServerComponent {
 
 export class Room {
 
-    private config: RoomConfig;
+    public config: RoomConfig;
+    public players: Utils.Map<string, Players.Player>;
 
     constructor(config: RoomConfig) {
         this.config = config;
+        this.players = new Utils.Map<string, Players.Player>();
     }
 
     public onCreate() {
-        Utils.CallbackHandler.getInstance().sendCallback(this.config.callbackUrl, "Room_created", this);
     }
 
     public onDelete() {
-        Utils.CallbackHandler.getInstance().sendCallback(this.config.callbackUrl, "Room_deleted", this);
+    }
+
+    public getID(): string {
+        return this.config.hash;
+    }
+
+    public isAlive(): boolean {
+        return true;
     }
 
 }

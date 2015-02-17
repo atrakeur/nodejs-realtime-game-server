@@ -88,40 +88,6 @@ export class Crypto {
     }
 }
 
-export class CallbackHandler {
-
-    private static instance: CallbackHandler;
-
-    private config: AppConfig;
-
-    public static getInstance(): CallbackHandler {
-        return CallbackHandler.instance;
-    }
-
-    public constructor(config: AppConfig) {
-        CallbackHandler.instance = this;
-
-        this.config = config;
-    }
-
-    public sendCallback(url: string, name: string, data: any) {
-        var payload = {
-            name: name,
-            data: data
-        };
-
-        var urlData = Crypto.urlencrypt(payload, this.config.secure_key);
-        var fullUrl = url + '?' + urlData;
-
-        request(fullUrl, function (error, response, body) {
-            if (error || response.statusCode != 200) {
-                console.error(error + " " + body);
-            }
-        });
-    }
-
-}
-
 export class Http {
 
     public static write(responce: http.ServerResponse, httpCode: number, content: string) {
@@ -174,11 +140,11 @@ export class Map<T, E> {
         }
     }
 
-    public containsKey(key: T): bool {
+    public containsKey(key: T): boolean {
         return this.getKeyIndex(key) != -1;
     }
 
-    public containsValue(value: E): bool {
+    public containsValue(value: E): boolean {
         return this.getValueIndex(value) != -1;
     }
 
@@ -203,8 +169,65 @@ export class Map<T, E> {
     }
 
     public foreachValue(callback: (key:T, val: E)=> void) {
-        for (var i = 0; i < this.keys.length; i++) {
+        for (var i = this.keys.length - 1; i >= 0 ; i--) {
             callback(this.keys[i], this.vals[i]);
         }
     }
+}
+
+export class Observable<T> {
+
+    private static instance: Observable<any>;
+
+    public static getInstance() {
+        if (Observable.instance == null) {
+            Observable.instance = new Observable();
+        }
+
+        return Observable.instance;
+    }
+
+    private listenerFuncs: any[][];
+
+    constructor()
+    {
+        this.listenerFuncs = [];
+    }
+
+    public addListener(name: string, handler: (message: T) => void): void
+    {
+        var internalName = "recv_"+name;
+
+        this.listenerFuncs[internalName] = this.listenerFuncs[internalName] || [];
+        this.listenerFuncs[internalName].push(handler);
+    }
+
+    public removeListener(name: string, handler: (message: T) => void): void
+    {
+        var internalName = "recv_"+name;
+
+        var theHandlers = this.listenerFuncs[internalName];
+        if(theHandlers) {
+            for(var i = 0; i < theHandlers.length; i++)
+            {
+                if (theHandlers[i] == handler)
+                {
+                    theHandlers.splice(i);
+                }
+            }
+        }
+    }
+
+    public dispatch(name: string, message: T): void
+    {
+        var internalName = "recv_"+name;
+
+        var theHandlers = this.listenerFuncs[internalName];
+        if(theHandlers) {
+            for(var i = 0; i < theHandlers.length; i++) {
+                theHandlers[i](message);
+            }
+        }
+    }
+
 }
