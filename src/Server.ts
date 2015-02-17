@@ -18,18 +18,24 @@ export class Server {
 
     private components: IServerComponent[];
 
+    private watchdogCount: number;
+
     public constructor(config: AppConfig) {
         this.config = config;
 
         this.http = Http.createServer(this.handleHttp);
         this.components = [];
+
+        this.watchdogCount = 0;
+
+        setTimeout(this.handleWatchdog, 1000);
     }
 
     public start() {
         this.http.listen(this.config.port, this.config.address);
         this.io   = Socket.listen(this.http);
 
-        this.io.on('connect', this.handleConnect);
+        this.io.on('connect', this.handleSocket);
         console.log("Listening on "+this.config.address+":"+this.config.port);
     }
 
@@ -49,8 +55,11 @@ export class Server {
     }
 
     handleHttp = (request: Http.ServerRequest, responce: Http.ServerResponse) => {
-        var data = <Message<any>> Utils.Crypto.urldecrypt(request.url, this.config.secure_key);
-        console.log(data);
+        try {
+            var data = <Message<any>> Utils.Crypto.urldecrypt(request.url, this.config.secure_key);
+        } catch (error) {
+            return Utils.Http.write(responce, 400, JSON.stringify(error));
+        }
 
         for (var i = 0; i < this.components.length; i++) {
             var component: IServerComponent = this.components[i];
@@ -59,61 +68,37 @@ export class Server {
             //Component returned a customised responce
             if (responce === newResponce)
             {
-                responce.end();
-                return;
+                return responce.end();
             }
             //Component returned a default responce
             else if (newResponce === true)
             {
-                responce.writeHead(200);
-                responce.write("OK");
-                responce.end();
-                return;
+                return Utils.Http.write(responce, 200, "OK");
             }
         }
 
         //No component returned a responce
-        responce.writeHead(404);
-        responce.write("Not found");
-        responce.end();
+        return Utils.Http.write(responce, 404, "Not found");
     }
 
-    handleConnect = (socket: SocketIO.Socket) => {
+    handleSocket = (socket: SocketIO.Socket) => {
         console.log("Connect " + socket.id);
-        socket.on('message', this.handleMessage);
-        socket.on('disconnect', () => {
-            //Workaround to pass the correct socket to handleDisconnect
-            this.handleDisconnect(socket);
-        });
 
         for (var i = 0; i < this.components.length; i++) {
             var component: IServerComponent = this.components[i];
 
-            if (component.handleConnect(socket)) {
+            if (component.handleSocket(socket)) {
                 return;
             }
         }
     }
 
-    handleDisconnect = (socket: SocketIO.Socket) => {
-        console.log("Disconnect " + socket.id);
+    handleWatchdog = () => {
+        this.watchdogCount++;
 
         for (var i = 0; i < this.components.length; i++) {
             var component: IServerComponent = this.components[i];
-
-            if (component.handleDisconnect(socket)) {
-                return;
-            }
-        }
-    }
-
-    handleMessage = (message: Message<any>) => {
-        for (var i = 0; i < this.components.length; i++) {
-            var component: IServerComponent = this.components[i];
-
-            if (component.handleMessage(message)) {
-                return;
-            }
+            component.handleWatchdog(this.watchdogCount);
         }
     }
 
@@ -132,19 +117,13 @@ interface IServerComponent {
      * Handle a socket connection
      * @param socket
      */
-    handleConnect(socket: SocketIO.Socket): boolean;
+    handleSocket(socket: SocketIO.Socket);
 
     /**
-     * Handle a socket disconnect
-     * @param socket
-     */
-    handleDisconnect(socket: SocketIO.Socket): boolean;
-
-    /**
-     * Handle a socket message
+     * Handle a watchdog event (bookkeeping)
      * @param message
      */
-    handleMessage(message: any): boolean;
+    handleWatchdog(counter: number);
 
 }
 
@@ -152,13 +131,9 @@ export class ServerComponent implements IServerComponent {
     handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: Message<any>): any {
         return false;
     }
-    handleConnect(socket:SocketIO.Socket):boolean {
+    handleSocket(socket:SocketIO.Socket) {
         return false;
     }
-    handleDisconnect(socket:SocketIO.Socket):boolean {
-        return false;
-    }
-    handleMessage(message:any):boolean {
-        return false;
+    handleWatchdog(counter: number) {
     }
 }

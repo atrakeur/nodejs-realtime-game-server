@@ -1,5 +1,6 @@
+all: node_modules app
 
-all: node_modules application.js src/Application.js
+app: application.js src/Application.js
 
 application.js: application.ts
 	tsc --module commonjs application.ts

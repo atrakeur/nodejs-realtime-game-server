@@ -7,6 +7,7 @@ import Request = require("request");
 import Server  = require("./Server");
 import Rooms   = require("./Rooms");
 import Players = require("./Players");
+import Utils   = require("./Utils");
 
 export class Application {
 
@@ -19,6 +20,8 @@ export class Application {
     public constructor(config: AppConfig)
     {
         this.config = config;
+
+        new Utils.CallbackHandler(config);
 
         this.server  = new Server.Server(config);
         this.rooms   = new Rooms.RoomList(config);

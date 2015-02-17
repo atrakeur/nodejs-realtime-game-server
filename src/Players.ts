@@ -1,63 +1,61 @@
 /// <reference path="./Contracts/AppConfig.ts" />
 /// <reference path="./Contracts/Message.ts" />
+/// <reference path="./Contracts/PlayerConfig.ts" />
 
 import Http = require("http");
 
 import Server = require("./Server");
+import Utils  = require("./Utils");
 
 export class PlayerList extends Server.ServerComponent {
 
     private config: AppConfig;
 
-    private players: Player[];
+    private players: Utils.Map<string, Player>;
 
     constructor(config: AppConfig) {
         super();
 
         this.config = config;
 
-        this.players = [];
+        this.players = new Utils.Map<string, Player>();
     }
 
-    public createPlayer(socket: SocketIO.Socket): Player {
-        var player = new Player(socket);
-        this.players[player.getID()] = player;
-        return player;
+    handleSocket(socket:SocketIO.Socket) {
+        socket.on("message", (message: Message<PlayerConfig>) => {
+            if (message.name == "Players_connect") {
+                this.handleConnect(socket, message);
+            }
+        });
+        socket.on("disconnect", (message: Message<PlayerConfig>) => {
+            this.handleDisconnect(socket, message);
+        });
     }
 
-    public getPlayer(hash: string): Player {
-        return this.players[hash];
+    handleConnect(socket: SocketIO.Socket, message: Message<PlayerConfig>) {
+        var player = new Player(message.data, socket);
+        this.players.add(player.getID(), player);
+        player.onCreate();
     }
 
-    public deletePlayer(hash: string): void {
-        delete this.players[hash];
-    }
+    handleDisconnect(socket: SocketIO.Socket, message: Message<PlayerConfig>) {
 
-    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: Message<any>): any {
-        return false;
-    }
-    handleConnect(socket:SocketIO.Socket):boolean {
-        return false;
-    }
-    handleDisconnect(socket:SocketIO.Socket):boolean {
-        return false;
-    }
-    handleMessage(message: Message<any>):boolean {
-        return false;
     }
 
 }
 
 export class Player {
 
+    private config: PlayerConfig;
     private socket: SocketIO.Socket;
 
-    public constructor(socket: SocketIO.Socket) {
+    public constructor(config: PlayerConfig, socket: SocketIO.Socket) {
+        this.config = config;
         this.socket = socket;
     }
 
     public getID(): string {
-        return this.socket.id;
+        return this.config.hash;
     }
 
 }

@@ -1,65 +1,82 @@
 /// <reference path="./Contracts/AppConfig.ts" />
 /// <reference path="./Contracts/Message.ts" />
+/// <reference path="./Contracts/RoomConfig.ts" />
 
-import Http = require("http");
-
+import Http   = require("http");
 import Server = require("./Server");
+import Utils  = require("./Utils");
 
 export class RoomList extends Server.ServerComponent {
 
     private config: AppConfig;
 
-    private rooms: Room[];
+    private rooms: Utils.Map<string, Room>;
 
     constructor(config: AppConfig) {
         super();
 
         this.config = config;
 
-        this.rooms = [];
+        this.rooms = new Utils.Map<string, Room>();
     }
 
-    public createRoom(hash: string): Room {
-        var room = new Room(hash);
-        this.rooms[hash] = room;
-        console.log("Room "+hash+" created!");
+    public createRoom(config: RoomConfig): Room {
+        if (this.rooms.containsKey(config.hash)) {
+            throw new Error("Room "+config.hash+" all ready exists");
+        }
+
+        var room = new Room(config);
+        this.rooms.add(config.hash, room);
+        room.onCreate();
+
         return room;
     }
 
     public getRoom(hash: string): Room {
-        return this.rooms[hash];
+        return this.rooms.get(hash);
     }
 
     public deleteRoom(hash: string): void {
-        delete this.rooms[hash];
+        var room = this.rooms.get(hash);
+
+        if (room != null) {
+            room.onDelete();
+            this.rooms.remove(hash);
+        }
+
+        return room;
     }
 
-    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: Message<any>): any {
-        if (data.name == "Room_create") {
-            this.createRoom(data.data.roomName);
+    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, message: Message<RoomConfig>): any {
+        if (message.name == "Room_create") {
+            this.createRoom(message.data);
             return true;
         }
 
         return false;
     }
-    handleConnect(socket:SocketIO.Socket):boolean {
+    handleSocket(socket:SocketIO.Socket):boolean {
         return false;
     }
-    handleDisconnect(socket:SocketIO.Socket):boolean {
-        return false;
-    }
-    handleMessage(message: Message<any>):boolean {
-        return false;
+    handleWatchdog(counter: number) {
     }
 
 }
 
 export class Room {
 
-    private hash: string;
+    private config: RoomConfig;
 
-    constructor(hash: string) {
-        this.hash = hash;
+    constructor(config: RoomConfig) {
+        this.config = config;
+    }
+
+    public onCreate() {
+        Utils.CallbackHandler.getInstance().sendCallback(this.config.callbackUrl, "Room_created", this);
+    }
+
+    public onDelete() {
+        Utils.CallbackHandler.getInstance().sendCallback(this.config.callbackUrl, "Room_deleted", this);
     }
 
 }
