@@ -44,6 +44,8 @@ export class RoomList extends Server.ServerComponent {
         this.rooms.add(config.hash, room);
         room.onCreate();
 
+        console.log("Created room " + config.hash)
+
         Utils.Observable.getInstance().dispatch("Room_created", room);
 
         return room;

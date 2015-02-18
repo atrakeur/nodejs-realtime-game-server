@@ -24,6 +24,7 @@ export class Application {
         this.config = config;
 
         this.callback = new CallbackHandler(config);
+        this.callback.attach(Utils.Observable.getInstance());
 
         this.server  = new Server.Server(config);
         this.rooms   = new Rooms.RoomList(config);
@@ -90,9 +91,10 @@ export class CallbackHandler {
         var urlData = Utils.Crypto.urlencrypt(payload, this.config.secure_key);
         var fullUrl = url + '?' + urlData;
 
+        console.log("Request to "+fullUrl+" sent");
         Request(fullUrl, function (error, response, body) {
             if (error || response.statusCode != 200) {
-                console.error(error + " " + body);
+                console.error("Error: " + error + " " + body);
             }
         });
     }

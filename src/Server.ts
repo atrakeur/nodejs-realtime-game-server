@@ -86,6 +86,10 @@ export class Server {
     handleSocket = (socket: SocketIO.Socket) => {
         console.log("Connect " + socket.id);
 
+        socket.on("message", (message: any) => {
+            console.log(message);
+        });
+
         for (var i = 0; i < this.components.length; i++) {
             var component: IServerComponent = this.components[i];
 
