@@ -8,6 +8,7 @@ import Server  = require("./Server");
 import Rooms   = require("./Rooms");
 import Players = require("./Players");
 import Utils   = require("./Utils");
+//import Process = require("process");
 
 export class Application {
 
@@ -36,6 +37,17 @@ export class Application {
 
     public start(): void {
         this.server.start();
+
+        var instance = this;
+        process.on('SIGINT', function() {
+            console.log("\nServer is going down...");
+            instance.stop();
+
+            setTimeout(() => {
+                console.log("Server is down");
+                process.exit();
+            }, 5 * 1000);
+        });
     }
 
     public stop(): void {

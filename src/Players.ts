@@ -26,6 +26,12 @@ export class PlayerList extends Server.ServerComponent {
         this.config = config;
 
         this.players = new Utils.Map<string, Player>();
+
+        Utils.Observable.getInstance().addListener("Server_stop", (reason: any) => {
+            this.players.foreachValue((key: string, player: Player) => {
+                player.emit("shutdown", reason);
+            });
+        });
     }
 
     handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: Message<any>): any {

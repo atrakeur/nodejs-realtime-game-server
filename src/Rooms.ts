@@ -33,6 +33,12 @@ export class RoomList extends Server.ServerComponent {
         Utils.Observable.getInstance().addListener("Player_disconnected", (player: Players.Player) => {
             this.unjoinPlayer(player.config.roomhash, player);
         });
+
+        Utils.Observable.getInstance().addListener("Server_stop", () => {
+            this.rooms.foreachValue((key: string, room: Room) => {
+                this.deleteRoom(key);
+            });
+        });
     }
 
     public createRoom(config: RoomConfig): Room {
@@ -87,6 +93,16 @@ export class RoomList extends Server.ServerComponent {
         room.onUnJoin(player);
     }
 
+    public sendRoom(roomHash: string, message: any) {
+        var room: Room = this.rooms.get(roomHash);
+
+        if (room == null) {
+            throw new Error("Can't find room "+roomHash);
+        }
+
+        room.send(message);
+    }
+
     handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, message: Message<RoomConfig>): any {
         if (message.name == "Room_create") {
             this.createRoom(message.data);
@@ -94,6 +110,10 @@ export class RoomList extends Server.ServerComponent {
         }
         if (message.name == "Room_delete") {
             this.deleteRoom(message.data.roomhash);
+            return true;
+        }
+        if (message.name == "Room_send") {
+            this.sendRoom(message.data.roomhash, message.data.message);
             return true;
         }
 
@@ -148,6 +168,12 @@ export class Room {
 
     public isAlive(): boolean {
         return this.players.size() > 0 || this.lastActivity + Room.ROOM_TIMEOUT > Date.now();
+    }
+
+    public send(message: any) {
+        this.players.foreachValue((key: string, player: Players.Player) => {
+            player.emit("message", message);
+        });
     }
 
 }

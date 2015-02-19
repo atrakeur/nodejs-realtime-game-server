@@ -40,6 +40,8 @@ export class Server {
     }
 
     public stop() {
+        Utils.Observable.getInstance().dispatch("Server_stop", null);
+
         this.http.close();
     }
 

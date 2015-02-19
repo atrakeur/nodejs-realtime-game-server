@@ -6,8 +6,14 @@
  */
 interface RoomConfig {
 
-    roomname: string;
+    //Room hash used in all reaquest to designate room
     roomhash: string;
+
+    //Room data used when creating room
+    roomname: string;
     callbackUrl : string;
+
+    //Message used when sending a message to a room
+    message: any;
 
 }
