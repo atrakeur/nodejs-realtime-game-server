@@ -85,6 +85,7 @@ export class PlayerList extends Server.ServerComponent {
 
         //Register disconnect event
         socket.on("disconnect", () => {
+            console.log("Player "+player.getID()+" disconnected!");
             player.onDisconnect();
             Utils.Observable.getInstance().dispatch("Player_disconnected", player);
         });

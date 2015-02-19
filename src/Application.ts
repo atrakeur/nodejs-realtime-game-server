@@ -91,7 +91,7 @@ export class CallbackHandler {
         var urlData = Utils.Crypto.urlencrypt(payload, this.config.secure_key);
         var fullUrl = url + '?' + urlData;
 
-        console.log("Request to "+fullUrl+" sent");
+        console.log("Sending "+JSON.stringify(payload)+" to "+url+"");
         Request(fullUrl, function (error, response, body) {
             if (error || response.statusCode != 200) {
                 console.error("Error: " + error + " " + body);

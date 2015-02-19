@@ -134,8 +134,8 @@ export class Map<T, E> {
             return null;
         } else {
             var elem = this.vals[index];
-            this.vals.slice(index, 1);
-            this.keys.slice(index, 1);
+            this.vals.splice(index, 1);
+            this.keys.splice(index, 1);
             return elem;
         }
     }
@@ -172,6 +172,11 @@ export class Map<T, E> {
         for (var i = this.keys.length - 1; i >= 0 ; i--) {
             callback(this.keys[i], this.vals[i]);
         }
+    }
+
+    public size() : number
+    {
+        return this.keys.length;
     }
 }
 

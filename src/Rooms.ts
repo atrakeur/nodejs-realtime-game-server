@@ -74,22 +74,17 @@ export class RoomList extends Server.ServerComponent {
             throw new Error("Can't find room "+roomHash);
         }
 
-        room.players.add(player.getID(), player);
-
-        Utils.Observable.getInstance().dispatch("Room_joined", {room: room, player: player});
+        room.onJoin(player);
     }
 
     public unjoinPlayer(roomHash: string, player: Players.Player) {
-        var roomHash: string = player.getID();
         var room: Room = this.rooms.get(roomHash);
 
         if (room == null) {
             throw new Error("Can't find room "+roomHash);
         }
 
-        room.players.remove(player.getID());
-
-        Utils.Observable.getInstance().dispatch("Room_unjoined", {room: room, player: player});
+        room.onUnJoin(player);
     }
 
     handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, message: Message<RoomConfig>): any {
@@ -106,14 +101,22 @@ export class RoomList extends Server.ServerComponent {
     }
 
     handleWatchdog(counter: number) {
+        this.rooms.foreachValue((key: string, room: Room) => {
+            if (!room.isAlive()) {
+                this.deleteRoom(key);
+            }
+        });
     }
 
 }
 
 export class Room {
 
+    public static ROOM_TIMEOUT = 10 * 1000;
+
     public config: RoomConfig;
     public players: Utils.Map<string, Players.Player>;
+    private lastActivity: number;
 
     constructor(config: RoomConfig) {
         this.config = config;
@@ -121,9 +124,22 @@ export class Room {
     }
 
     public onCreate() {
+        this.lastActivity = Date.now();
     }
 
     public onDelete() {
+    }
+
+    public onJoin(player: Players.Player) {
+        this.lastActivity = Date.now();
+        this.players.add(player.getID(), player);
+        Utils.Observable.getInstance().dispatch("Room_joined", {room: this, player: player});
+    }
+
+    public onUnJoin(player: Players.Player) {
+        this.lastActivity = Date.now();
+        this.players.remove(player.getID());
+        Utils.Observable.getInstance().dispatch("Room_unjoined", {room: this, player: player});
     }
 
     public getID(): string {
@@ -131,7 +147,7 @@ export class Room {
     }
 
     public isAlive(): boolean {
-        return true;
+        return this.players.size() > 0 || this.lastActivity + Room.ROOM_TIMEOUT > Date.now();
     }
 
 }
