@@ -40,10 +40,17 @@ export class PlayerList extends Server.ServerComponent {
         });
     }
 
+    /**
+     * Handle watch dog (clear out old players, and send ping requests)
+     * @param counter
+     */
     handleWatchdog(counter: number) {
         this.players.foreachValue((key: string, player: Player) => {
             if (!player.isAlive()) {
                 this.players.remove(key);
+            } else if(player.shouldPing()) {
+                player.emit("ping");
+                player.onPing();
             }
         });
     }
@@ -69,10 +76,15 @@ export class PlayerList extends Server.ServerComponent {
             Utils.Observable.getInstance().dispatch("Player_connected", player);
         }
 
+        //Register ping/pong event
+        socket.on("pong", () => {
+            player.onPong();
+            Utils.Observable.getInstance().dispatch("Player_pong", player);
+        });
+
         //Register disconnect event
         socket.on("disconnect", () => {
             player.onDisconnect();
-
             Utils.Observable.getInstance().dispatch("Player_disconnected", player);
         });
     }
@@ -81,14 +93,23 @@ export class PlayerList extends Server.ServerComponent {
 export class Player {
 
     public static PLAYER_TIMEOUT = 10 * 1000;
+    public static PLAYER_PINGTIME = 5 * 1000;
 
     public config: PlayerConfig;
 
+    //Socket instance (or null if no connection ATM)
     private socket: SocketIO.Socket;
+    //Date of last ping sent
+    private lastSocketPing: number;
+    //Date of last connection received
     private lastSocketDate: number;
+    //Average latency calculated
+    private latency: number;
 
     public constructor(config: PlayerConfig) {
         this.config = config;
+
+        this.latency = -1;
     }
 
     public onConnect(socket: SocketIO.Socket) {
@@ -117,5 +138,31 @@ export class Player {
     public isAlive(): boolean {
         return this.socket != null || this.lastSocketDate + Player.PLAYER_TIMEOUT < Date.now();
     }
+
+    public shouldPing(): boolean {
+        return this.socket != null || this.lastSocketPing + Player.PLAYER_PINGTIME < Date.now();
+    }
+
+    public onPing() {
+        this.lastSocketPing = Date.now();
+    }
+
+    public onPong() {
+        if (this.latency == -1)
+        {
+            this.latency = Date.now() - this.lastSocketPing;
+        }
+        else
+        {
+            var newLatency = Date.now() - this.lastSocketPing;
+            this.latency = (this.latency + newLatency) / 2;
+        }
+    }
+
+    public emit(name: string, ...args: any[]) {
+        this.socket.emit(name, args);
+    }
+
+
 
 }
