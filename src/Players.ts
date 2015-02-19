@@ -48,7 +48,8 @@ export class PlayerList extends Server.ServerComponent {
         this.players.foreachValue((key: string, player: Player) => {
             if (!player.isAlive()) {
                 this.players.remove(key);
-            } else if(player.shouldPing()) {
+            }
+            if(player.shouldPing()) {
                 player.emit("ping");
                 player.onPing();
             }
@@ -61,9 +62,9 @@ export class PlayerList extends Server.ServerComponent {
      * @param message
      */
     connPlayer(socket: SocketIO.Socket, config: PlayerConfig) {
-        if (this.players.containsKey(config.hash)) {
+        if (this.players.containsKey(config.userhash)) {
             //Register a new connection to a player
-            var player = this.players.get(config.hash);
+            var player = this.players.get(config.userhash);
             player.onReconnect(socket);
 
             Utils.Observable.getInstance().dispatch("Player_reconnected", player);
@@ -115,6 +116,7 @@ export class Player {
     public onConnect(socket: SocketIO.Socket) {
         this.socket = socket;
         this.lastSocketDate = Date.now();
+        this.lastSocketPing = Date.now();
     }
 
     public onReconnect(socket: SocketIO.Socket) {
@@ -132,7 +134,7 @@ export class Player {
     }
 
     public getID(): string {
-        return this.config.hash;
+        return this.config.userhash;
     }
 
     public isAlive(): boolean {
@@ -140,7 +142,7 @@ export class Player {
     }
 
     public shouldPing(): boolean {
-        return this.socket != null || this.lastSocketPing + Player.PLAYER_PINGTIME < Date.now();
+        return this.socket != null && this.lastSocketPing + Player.PLAYER_PINGTIME < Date.now();
     }
 
     public onPing() {

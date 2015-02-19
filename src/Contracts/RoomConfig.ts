@@ -6,7 +6,8 @@
  */
 interface RoomConfig {
 
-    hash: string;
+    roomname: string;
+    roomhash: string;
     callbackUrl : string;
 
 }

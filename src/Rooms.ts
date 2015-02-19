@@ -28,23 +28,23 @@ export class RoomList extends Server.ServerComponent {
         this.rooms = new Utils.Map<string, Room>();
 
         Utils.Observable.getInstance().addListener("Player_connected", (player: Players.Player) => {
-            this.joinPlayer(player.config.room, player);
+            this.joinPlayer(player.config.roomhash, player);
         });
         Utils.Observable.getInstance().addListener("Player_disconnected", (player: Players.Player) => {
-            this.unjoinPlayer(player.config.room, player);
+            this.unjoinPlayer(player.config.roomhash, player);
         });
     }
 
     public createRoom(config: RoomConfig): Room {
-        if (this.rooms.containsKey(config.hash)) {
-            throw new Error("Room "+config.hash+" all ready exists");
+        if (this.rooms.containsKey(config.roomhash)) {
+            throw new Error("Room "+config.roomhash+" all ready exists");
         }
 
         var room = new Room(config);
-        this.rooms.add(config.hash, room);
+        this.rooms.add(config.roomhash, room);
         room.onCreate();
 
-        console.log("Created room " + config.hash)
+        console.log("Created room " + config.roomhash)
 
         Utils.Observable.getInstance().dispatch("Room_created", room);
 
@@ -98,7 +98,7 @@ export class RoomList extends Server.ServerComponent {
             return true;
         }
         if (message.name == "Room_delete") {
-            this.deleteRoom(message.data.hash);
+            this.deleteRoom(message.data.roomhash);
             return true;
         }
 
@@ -127,7 +127,7 @@ export class Room {
     }
 
     public getID(): string {
-        return this.config.hash;
+        return this.config.roomhash;
     }
 
     public isAlive(): boolean {

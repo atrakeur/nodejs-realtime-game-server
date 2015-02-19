@@ -28,7 +28,7 @@ export class Server {
 
         this.watchdogCount = 0;
 
-        setTimeout(this.handleWatchdog, 1000);
+        setInterval(this.handleWatchdog, 1000);
     }
 
     public start() {

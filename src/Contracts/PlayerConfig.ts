@@ -1,6 +1,6 @@
 interface PlayerConfig {
 
-    hash: string;
-    room: string;
+    userhash: string;
+    roomhash: string;
 
 }
