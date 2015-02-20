@@ -43,10 +43,15 @@ export class Application {
             console.log("\nServer is going down...");
             instance.stop();
 
-            setTimeout(() => {
+            setInterval(() => {
+                console.log("Waiting for connections to clear up");
+                if (this.rooms.getCount() != 0 || this.players.getCount() != 0) {
+                    return;
+                }
+
                 console.log("Server is down");
                 process.exit();
-            }, 5 * 1000);
+            }, 1000);
         });
     }
 

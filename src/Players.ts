@@ -30,6 +30,7 @@ export class PlayerList extends Server.ServerComponent {
         Utils.Observable.getInstance().addListener("Server_stop", (reason: any) => {
             this.players.foreachValue((key: string, player: Player) => {
                 player.emit("shutdown", reason);
+                this.players.remove(key);
             });
         });
     }
@@ -95,6 +96,10 @@ export class PlayerList extends Server.ServerComponent {
             player.onDisconnect();
             Utils.Observable.getInstance().dispatch("Player_disconnected", player);
         });
+    }
+
+    public getCount() : number {
+        return this.players.size();
     }
 }
 

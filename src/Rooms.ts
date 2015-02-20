@@ -73,6 +73,10 @@ export class RoomList extends Server.ServerComponent {
         }
     }
 
+    public getCount() : number {
+        return this.rooms.size();
+    }
+
     public joinPlayer(roomHash: string, player: Players.Player) {
         var room: Room = this.rooms.get(roomHash);
 
