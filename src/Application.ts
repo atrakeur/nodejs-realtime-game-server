@@ -45,7 +45,7 @@ export class Application {
 
             setInterval(() => {
                 console.log("Waiting for connections to clear up");
-                if (this.rooms.getCount() != 0 || this.players.getCount() != 0) {
+                if (instance.rooms.getCount() != 0 || instance.players.getCount() != 0) {
                     return;
                 }
 

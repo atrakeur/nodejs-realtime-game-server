@@ -35,8 +35,9 @@ export class RoomList extends Server.ServerComponent {
         });
 
         Utils.Observable.getInstance().addListener("Server_stop", () => {
+            var instance = this;
             this.rooms.foreachValue((key: string, room: Room) => {
-                this.deleteRoom(key);
+                instance.deleteRoom(key);
             });
         });
     }
