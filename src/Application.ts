@@ -112,6 +112,10 @@ export class CallbackHandler {
         Request(fullUrl, function (error, response, body) {
             if (error || response.statusCode != 200) {
                 console.error("Error: " + error + " " + body);
+            } else {
+                if (body.toLowerCase() != "ok") {
+                    console.log(body);
+                }
             }
         });
     }
