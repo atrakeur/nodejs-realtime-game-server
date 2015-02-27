@@ -144,6 +144,14 @@ export class Map<T, E> {
         return this.getKeyIndex(key) != -1;
     }
 
+    public getKeys(): T[] {
+        return this.keys;
+    }
+
+    public getValues(): E[] {
+        return this.vals;
+    }
+
     public containsValue(value: E): boolean {
         return this.getValueIndex(value) != -1;
     }
