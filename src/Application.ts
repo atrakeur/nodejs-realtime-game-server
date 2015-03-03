@@ -7,14 +7,15 @@ import Request = require("request");
 import Server  = require("./Server");
 import Rooms   = require("./Rooms");
 import Players = require("./Players");
+import Status = require("./Status");
 import Utils   = require("./Utils");
-//import Process = require("process");
 
 export class Application {
 
     private server: Server.Server;
     private rooms : Rooms.RoomList;
     private players: Players.PlayerList;
+    private status: Status.StatusComponent;
 
     private callback: CallbackHandler;
 
@@ -30,9 +31,11 @@ export class Application {
         this.server  = new Server.Server(config);
         this.rooms   = new Rooms.RoomList(config);
         this.players = new Players.PlayerList(config);
+        this.status  = new Status.StatusComponent(config);
 
         this.server.addComponent(this.rooms);
         this.server.addComponent(this.players);
+        this.server.addComponent(this.status);
     }
 
     public start(): void {
@@ -47,6 +50,7 @@ export class Application {
 
             setInterval(() => {
                 console.log("Waiting for connections to clear up");
+                //TODO move this logic to respective objects
                 if (instance.rooms.getCount() != 0 || instance.players.getCount() != 0) {
                     return;
                 }

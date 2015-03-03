@@ -109,10 +109,6 @@ export class RoomList extends Server.ServerComponent {
     }
 
     handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, message: Message<RoomConfig>): any {
-        if (request.url == "/roomlist") {
-            responce.write(JSON.stringify(this.toJSONObject()));
-            return responce;
-        }
         if (message.name == "Room_create") {
             this.createRoom(message.data);
             return true;
@@ -135,15 +131,6 @@ export class RoomList extends Server.ServerComponent {
                 this.deleteRoom(key);
             }
         });
-    }
-
-    public toJSONObject() : string {
-        var obj = <any>{};
-        obj.rooms = [];
-        this.rooms.foreachValue((key: string, val: Room) => {
-            obj.rooms.push(val.toJSONObject());
-        });
-        return obj;
     }
 
 }
@@ -192,14 +179,6 @@ export class Room {
         this.players.foreachValue((key: string, player: Players.Player) => {
             player.emit("message", message);
         });
-    }
-
-    public toJSONObject() : string {
-        var obj = <any>{};
-        obj.id = this.getID();
-        obj.config = this.config;
-        obj.players = this.players.getKeys();
-        return obj;
     }
 
 }

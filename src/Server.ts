@@ -65,7 +65,9 @@ export class Server {
         }
 
         //TODO remove that debug line
-        console.log(data);
+        if (Object.keys(data).length != 0) {
+            console.log(data);
+        }
 
         for (var i = 0; i < this.components.length; i++) {
             var component: IServerComponent = this.components[i];
