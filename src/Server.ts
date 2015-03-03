@@ -60,9 +60,11 @@ export class Server {
         try {
             var data = <Message<any>> Utils.Crypto.urldecrypt(request.url, this.config.secure_key);
         } catch (error) {
+            Utils.Observable.getInstance().dispatch("RequestError", {err: error, req: request});
             return Utils.Http.write(responce, 400, JSON.stringify(error));
         }
 
+        //TODO remove that debug line
         console.log(data);
 
         for (var i = 0; i < this.components.length; i++) {
@@ -82,6 +84,7 @@ export class Server {
         }
 
         //No component returned a responce
+        Utils.Observable.getInstance().dispatch("RequestError", {err: new Error("404 Not Found"), req: request});
         return Utils.Http.write(responce, 404, "Not found");
     }
 

@@ -40,6 +40,8 @@ export class Application {
 
         var instance = this;
         process.on('SIGINT', function() {
+            Utils.Observable.getInstance().dispatch("Server_stopping", null);
+
             console.log("\nServer is going down...");
             instance.stop();
 
@@ -49,6 +51,7 @@ export class Application {
                     return;
                 }
 
+                Utils.Observable.getInstance().dispatch("Server_stopped", null);
                 console.log("Server is down");
                 process.exit();
             }, 1000);

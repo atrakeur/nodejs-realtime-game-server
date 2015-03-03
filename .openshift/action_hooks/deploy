@@ -1,0 +1,13 @@
+echo "-------------------------------------------------------"
+echo "Sending deploy to Rollbar"
+echo "-------------------------------------------------------"
+ACCESS_TOKEN=$OPENSHIFT_ROLLBAR_KEY
+ENVIRONMENT=production
+LOCAL_USERNAME=`whoami`
+REVISION=$OPENSHIFT_APP_NAME"_"`cat ~/git/$OPENSHIFT_APP_NAME.git/refs/heads/master`
+
+curl https://api.rollbar.com/api/1/deploy/ \
+  -F access_token=$ACCESS_TOKEN \
+  -F environment=$ENVIRONMENT \
+  -F revision=$REVISION \
+  -F local_username=$LOCAL_USERNAME
