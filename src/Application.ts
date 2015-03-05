@@ -118,7 +118,7 @@ export class CallbackHandler {
         console.log("Sending "+JSON.stringify(payload)+" to "+url+"");
         Request(fullUrl, function (error, response, body) {
             if (error || response.statusCode != 200) {
-                console.error("Error: " + error + " " + body);
+                Utils.Observable.getInstance().dispatch("Error", {err: new Error("Callback "+url+" error "+body)});
             } else {
                 if (body.toLowerCase() != "ok") {
                     console.log(body);

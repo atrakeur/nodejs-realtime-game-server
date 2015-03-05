@@ -17,9 +17,7 @@ export class StatusComponent extends Server.ServerComponent {
 
         this.config = config;
 
-        rollbar.init(process.env.OPENSHIFT_ROLLBAR_KEY || "abcdef1234");
-
-        this.repository = new StatusRepository(Utils.Observable.getInstance());
+        this.repository = new StatusRepository(config, Utils.Observable.getInstance());
     }
 
     handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: Message<any>): any {
@@ -50,28 +48,46 @@ export class StatusComponent extends Server.ServerComponent {
  * Register and hold status values
  */
 export class StatusRepository {
+    private config: AppConfig;
     private observable: Utils.Observable<any>;
 
     public roomCount: number;
     public playerCount: number;
 
-    constructor(observable: Utils.Observable<any>) {
+    constructor(config: AppConfig, observable: Utils.Observable<any>) {
+        this.config = config;
         this.observable = observable;
 
         this.roomCount = 0;
         this.playerCount = 0;
 
+        if (config.rollbar_key != "") {
+            rollbar.init(config.rollbar_key);
+        }
+
         /**
          * Register errors handlers
          */
         process.on('uncaughtException', (err) => {
-            rollbar.handleError(err);
+            if (config.rollbar_key != "") {
+                rollbar.handleError(err);
+            } else {
+                console.error("[Error] "+err);
+            }
         });
         this.observable.addListener("Error", (data) => {
-            rollbar.handleError(data.err);
+            if (config.rollbar_key != "") {
+                rollbar.handleError(data.err);
+            } else {
+                console.error("[Error] "+data.err);
+            }
         });
         this.observable.addListener("RequestError", (data) => {
-            rollbar.handleError(data.err, data.req);
+            if (config.rollbar_key != "") {
+                rollbar.handleError(data.err, data.req);
+            } else {
+                console.error("[Error] "+data.err+";"+data.req);
+            }
         });
         this.observable.addListener("Server_stopped", () => {
             rollbar.shutdown();
