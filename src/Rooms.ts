@@ -28,10 +28,20 @@ export class RoomList extends Server.ServerComponent {
         this.rooms = new Utils.Map<string, Room>();
 
         Utils.Observable.getInstance().addListener("Player_connected", (player: Players.Player) => {
-            this.joinPlayer(player.config.roomhash, player);
+            try {
+                this.joinPlayer(player.config.roomhash, player);
+            } catch (err) {
+                this.deleteRoom(player.config.roomhash);
+                Utils.Observable.getInstance().dispatch("Error", {err: err});
+            }
         });
         Utils.Observable.getInstance().addListener("Player_disconnected", (player: Players.Player) => {
-            this.unjoinPlayer(player.config.roomhash, player);
+            try {
+                this.unjoinPlayer(player.config.roomhash, player);
+            } catch (err) {
+                this.deleteRoom(player.config.roomhash);
+                Utils.Observable.getInstance().dispatch("Error", {err: err});
+            }
         });
 
         Utils.Observable.getInstance().addListener("Server_stop", () => {
@@ -109,6 +119,7 @@ export class RoomList extends Server.ServerComponent {
     }
 
     handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, message: Message<RoomConfig>): any {
+
         if (message.name == "Room_create") {
             this.createRoom(message.data);
             return true;
@@ -121,6 +132,7 @@ export class RoomList extends Server.ServerComponent {
             this.sendRoom(message.data.roomhash, message.data.message);
             return true;
         }
+
 
         return false;
     }

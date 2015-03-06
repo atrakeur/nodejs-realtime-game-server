@@ -86,7 +86,7 @@ export class StatusRepository {
             if (config.rollbar_key != "") {
                 rollbar.handleError(data.err, data.req);
             } else {
-                console.error("[Error] "+data.err+";"+data.req);
+                console.error("[RequestError] "+data.err+";"+data.req);
             }
         });
         this.observable.addListener("Server_stopped", () => {

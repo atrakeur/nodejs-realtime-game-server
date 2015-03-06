@@ -69,25 +69,33 @@ export class Server {
             console.log(data);
         }
 
-        for (var i = 0; i < this.components.length; i++) {
-            var component: IServerComponent = this.components[i];
-            var newResponce = component.handleHttp(request, responce, data);
+        try {
+            for (var i = 0; i < this.components.length; i++) {
+                var component: IServerComponent = this.components[i];
+                var newResponce = component.handleHttp(request, responce, data);
 
-            //Component returned a customised responce
-            if (responce === newResponce)
-            {
-                return responce.end();
+                //Component returned a customised responce
+                if (responce === newResponce)
+                {
+                    return responce.end();
+                }
+                //Component returned a default responce
+                else if (newResponce === true)
+                {
+                    return Utils.Http.write(responce, 200, "OK");
+                }
             }
-            //Component returned a default responce
-            else if (newResponce === true)
-            {
-                return Utils.Http.write(responce, 200, "OK");
-            }
+
+            var error = <any>request;
+            error.decodedData = data;
+            Utils.Observable.getInstance().dispatch("RequestError", {err: new Error("404 Wrong input"), req: error});
+            return Utils.Http.write(responce, 404, "No handler found");
+        } catch (e) {
+            var error = <any>request;
+            error.decodedData = data;
+            Utils.Observable.getInstance().dispatch("RequestError", {err: new Error("400 Request error"), req: error});
+            return Utils.Http.write(responce, 400, "Request error");
         }
-
-        //No component returned a responce
-        Utils.Observable.getInstance().dispatch("RequestError", {err: new Error("404 Not Found"), req: request});
-        return Utils.Http.write(responce, 404, "Not found");
     }
 
     handleSocket = (socket: SocketIO.Socket) => {
