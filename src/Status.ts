@@ -84,7 +84,7 @@ export class StatusRepository {
         });
         this.observable.addListener("RequestError", (data) => {
             if (config.rollbar_key != "") {
-                rollbar.handleError(data.err, data.req);
+                rollbar.handleErrorWithPayloadData(data.err, {custom: {data: data.data}}, data.req);
             } else {
                 console.error("[RequestError] "+data.err+";"+data.req);
             }

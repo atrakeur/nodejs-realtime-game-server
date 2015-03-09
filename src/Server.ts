@@ -86,14 +86,18 @@ export class Server {
                 }
             }
 
-            var error = <any>request;
-            error.decodedData = data;
-            Utils.Observable.getInstance().dispatch("RequestError", {err: new Error("404 Wrong input"), req: error});
+            Utils.Observable.getInstance().dispatch(
+                "RequestError",
+                {err: new Error("404 Wrong input"), req: request, data: data}
+            );
             return Utils.Http.write(responce, 404, "No handler found");
         } catch (e) {
             var error = <any>request;
             error.decodedData = data;
-            Utils.Observable.getInstance().dispatch("RequestError", {err: new Error("400 Request error"), req: error});
+            Utils.Observable.getInstance().dispatch(
+                "RequestError",
+                {err: new Error("400 Request error"), req: error, data: data}
+            );
             return Utils.Http.write(responce, 400, "Request error");
         }
     }
