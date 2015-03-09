@@ -104,6 +104,10 @@ export class CallbackHandler {
             var player : Players.Player = data.player;
             this.sendCallback(room.config.callbackUrl, "Room_unjoined", {room: room.getID(), player: player.getID()});
         });
+        this.events.addListener("Room_announce", (data: any) => {
+            var room : Rooms.Room = data.room;
+            this.sendCallback(room.config.callbackUrl, "Room_announce", {room: room.getID()});
+        });
     }
 
     public sendCallback(url: string, name: string, data: any) {

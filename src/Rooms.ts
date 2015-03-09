@@ -142,6 +142,9 @@ export class RoomList extends Server.ServerComponent {
             if (!room.isAlive()) {
                 this.deleteRoom(key);
             }
+            if (room.needAnnounce()) {
+                room.onAnnounce();
+            }
         });
     }
 
@@ -149,11 +152,13 @@ export class RoomList extends Server.ServerComponent {
 
 export class Room {
 
-    public static ROOM_TIMEOUT = 10 * 1000;
+    public static ROOM_TIMEOUT = 10 * 1000;     //TIMEOUT to destroy room after last player leave
+    public static ROOM_ANNOUNCE = 4 * 60 * 1000;//TIMEOUT to reannounce room
 
     public config: RoomConfig;
     public players: Utils.Map<string, Players.Player>;
     private lastActivity: number;
+    private lastAnnounce: number;
 
     constructor(config: RoomConfig) {
         this.config = config;
@@ -162,6 +167,7 @@ export class Room {
 
     public onCreate() {
         this.lastActivity = Date.now();
+        this.lastAnnounce = Date.now();
     }
 
     public onDelete() {
@@ -179,8 +185,17 @@ export class Room {
         Utils.Observable.getInstance().dispatch("Room_unjoined", {room: this, player: player});
     }
 
+    public onAnnounce() {
+        this.lastAnnounce = Date.now();
+        Utils.Observable.getInstance().dispatch("Room_announce", {room: this});
+    }
+
     public getID(): string {
         return this.config.roomhash;
+    }
+
+    public needAnnounce(): boolean {
+        return this.lastAnnounce + Room.ROOM_ANNOUNCE < Date.now();
     }
 
     public isAlive(): boolean {
