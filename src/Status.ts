@@ -89,6 +89,13 @@ export class StatusRepository {
                 console.error("[RequestError] "+data.err+";"+data.req);
             }
         });
+        this.observable.addListener("SocketError", (data) => {
+            if (config.rollbar_key != "") {
+                rollbar.handleError(data.err, data.req);
+            } else {
+                console.error("[SocketError] "+data.err+";"+data.req);
+            }
+        });
         this.observable.addListener("Server_stopped", () => {
             rollbar.shutdown();
         });

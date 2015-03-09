@@ -104,6 +104,9 @@ export class Server {
         socket.on("message", (message: any) => {
             console.log(message);
         });
+        socket.on('error', (err) => {
+            Utils.Observable.getInstance().dispatch("SocketError", {err: err, req: socket});
+        });
 
         for (var i = 0; i < this.components.length; i++) {
             var component: IServerComponent = this.components[i];
