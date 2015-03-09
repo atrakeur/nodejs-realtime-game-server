@@ -55,6 +55,8 @@ export class PlayerList extends Server.ServerComponent {
     handleWatchdog(counter: number) {
         this.players.foreachValue((key: string, player: Player) => {
             if (!player.isAlive()) {
+                console.log("Removing from watchdog");
+                Utils.Observable.getInstance().dispatch("Player_removed", player);
                 this.players.remove(key);
             }
             if(player.shouldPing()) {
@@ -106,8 +108,8 @@ export class PlayerList extends Server.ServerComponent {
 
 export class Player {
 
-    public static PLAYER_TIMEOUT = 10 * 1000;
-    public static PLAYER_PINGTIME = 5 * 1000;
+    public static PLAYER_TIMEOUT =  15 * 1000;
+    public static PLAYER_PINGTIME = 10 * 1000;
 
     public config: PlayerConfig;
 
@@ -151,7 +153,7 @@ export class Player {
     }
 
     public isAlive(): boolean {
-        return this.socket != null || this.lastSocketDate + Player.PLAYER_TIMEOUT < Date.now();
+        return this.socket != null || this.lastSocketDate + Player.PLAYER_TIMEOUT > Date.now();
     }
 
     public shouldPing(): boolean {

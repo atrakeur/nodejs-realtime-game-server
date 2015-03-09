@@ -1,7 +1,8 @@
 import Server  = require("./Server");
 import Http    = require("http");
 import Utils   = require("./Utils");
-var rollbar = require("rollbar");
+var memwatch = require('memwatch');
+var rollbar  = require("rollbar");
 
 /**
  * Server component that respond to status requests
@@ -68,6 +69,18 @@ export class StatusRepository {
         /**
          * Register errors handlers
          */
+        memwatch.on('leak', (info: any) => {
+            if (config.rollbar_key != "") {
+                rollbar.handleErrorWithPayloadData("Memory Leak", {custom: info});
+            } else {
+                console.error("[Leak] "+JSON.stringify(info));
+            }
+        });
+        memwatch.on('stats', (info: any) => {
+            if (config.rollbar_key == "") {
+                console.error("[Memstats] "+JSON.stringify(info));
+            }
+        });
         process.on('uncaughtException', (err) => {
             if (config.rollbar_key != "") {
                 rollbar.handleError(err);

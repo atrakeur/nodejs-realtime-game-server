@@ -30,7 +30,7 @@ export class RoomList extends Server.ServerComponent {
         Utils.Observable.getInstance().addListener("Player_connected", (player: Players.Player) => {
             this.joinPlayer(player.config.roomhash, player);
         });
-        Utils.Observable.getInstance().addListener("Player_disconnected", (player: Players.Player) => {
+        Utils.Observable.getInstance().addListener("Player_removed", (player: Players.Player) => {
                 this.unjoinPlayer(player.config.roomhash, player);
         });
 
@@ -44,7 +44,7 @@ export class RoomList extends Server.ServerComponent {
 
     public createRoom(config: RoomConfig): Room {
         if (this.rooms.containsKey(config.roomhash)) {
-            throw new Error("Room "+config.roomhash+" all ready exists");
+            throw new Error("Can't create two rooms with the same hash");
         }
 
         var room = new Room(config);
@@ -82,7 +82,7 @@ export class RoomList extends Server.ServerComponent {
         var room: Room = this.rooms.get(roomHash);
 
         if (room == null) {
-            throw new Error("Can't find room "+roomHash);
+            throw new Error("Can't find room to join");
         }
 
         room.onJoin(player);
@@ -92,7 +92,7 @@ export class RoomList extends Server.ServerComponent {
         var room: Room = this.rooms.get(roomHash);
 
         if (room == null) {
-            throw new Error("Can't find room "+roomHash);
+            throw new Error("Can't find room to unjoin");
         }
 
         room.onUnJoin(player);
@@ -102,7 +102,7 @@ export class RoomList extends Server.ServerComponent {
         var room: Room = this.rooms.get(roomHash);
 
         if (room == null) {
-            throw new Error("Can't find room "+roomHash);
+            throw new Error("Can't find room to send to");
         }
 
         room.send(message);
