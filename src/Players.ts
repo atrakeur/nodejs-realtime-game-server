@@ -73,17 +73,31 @@ export class PlayerList extends Server.ServerComponent {
      */
     connPlayer(socket: SocketIO.Socket, config: PlayerConfig) {
         if (this.players.containsKey(config.userhash)) {
-            //Register a new connection to a player
             var player = this.players.get(config.userhash);
-            player.onReconnect(socket);
 
-            Utils.Observable.getInstance().dispatch("Player_reconnected", player);
+            if (player.config.roomhash == config.roomhash) {
+                //New connection but same player hash and same room hash
+                //Declare as Reconnect
+                player.onReconnect(socket);
+                Utils.Observable.getInstance().dispatch("Player_reconnected", player);
+            }
+            else
+            {
+                //New connection to a new room
+                //Declare as disconnect, then reconnect
+                Utils.Observable.getInstance().dispatch("Player_removed", player);
+                this.players.remove(config.userhash);
+                //then create a new player to a new room
+                var newplayer = new Player(config);
+                this.players.add(newplayer.getID(), newplayer);
+                newplayer.onConnect(socket);
+                Utils.Observable.getInstance().dispatch("Player_connected", newplayer);
+            }
         } else {
-            //Regster a new player
+            //New player, create
             var player = new Player(config);
             this.players.add(player.getID(), player);
             player.onConnect(socket);
-
             Utils.Observable.getInstance().dispatch("Player_connected", player);
         }
 

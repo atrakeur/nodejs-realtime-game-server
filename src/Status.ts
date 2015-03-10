@@ -106,7 +106,8 @@ export class StatusRepository {
             if (config.rollbar_key != "") {
                 rollbar.handleError(data.err, data.req);
             } else {
-                console.error("[SocketError] "+data.err+";"+data.req);
+                data.req.emit('error', data.err);
+                console.error("[SocketError] "+data.err);
             }
         });
         this.observable.addListener("Server_stopped", () => {
