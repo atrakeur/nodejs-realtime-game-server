@@ -128,7 +128,7 @@ export class StatusRepository {
             if (config.rollbar_key != "") {
                 rollbar.handleError(data.err, data.req);
             } else {
-                data.req.emit('error', data.err);
+                data.req.emit('servererror', data.err);
                 console.error(colors.red("[SocketError] "+JSON.stringify(data.err)));
             }
         });
