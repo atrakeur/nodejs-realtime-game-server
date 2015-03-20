@@ -51,7 +51,7 @@ export class RoomList extends Server.ServerComponent {
         this.rooms.add(config.roomhash, room);
         room.onCreate();
 
-        console.log("Created room " + config.roomhash)
+        Utils.Observable.getInstance().dispatch("Debug", {err: "Created room " + config.roomhash});
 
         Utils.Observable.getInstance().dispatch("Room_created", room);
 
@@ -119,6 +119,7 @@ export class RoomList extends Server.ServerComponent {
             return true;
         }
         if (message.name == "Room_send") {
+            Utils.Observable.getInstance().dispatch("Debug", {err: "Sending " + JSON.stringify(message.data)});
             this.sendRoom(message.data.roomhash, message.data.message);
             return true;
         }

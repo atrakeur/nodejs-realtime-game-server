@@ -45,18 +45,18 @@ export class Application {
         process.on('SIGINT', function() {
             Utils.Observable.getInstance().dispatch("Server_stopping", null);
 
-            console.log("\nServer is going down...");
+            Utils.Observable.getInstance().dispatch("Info", {err: "Server is going down..."});
             instance.stop();
 
             setInterval(() => {
-                console.log("Waiting for connections to clear up");
+                Utils.Observable.getInstance().dispatch("Info", {err: "Waiting for connections to clear up"});
                 //TODO move this logic to respective objects
                 if (instance.rooms.getCount() != 0 || instance.players.getCount() != 0) {
                     return;
                 }
 
                 Utils.Observable.getInstance().dispatch("Server_stopped", null);
-                console.log("Server is down");
+                Utils.Observable.getInstance().dispatch("Info", {err: "Server is down"});
                 process.exit();
             }, 1000);
         });
@@ -119,7 +119,11 @@ export class CallbackHandler {
         var urlData = Utils.Crypto.urlencrypt(payload, this.config.secure_key);
         var fullUrl = url + '?' + urlData;
 
-        console.log("Sending "+JSON.stringify(payload)+" to "+url+"");
+        if (this.config.callback_debug_key != "") {
+            fullUrl = fullUrl + "&" + "XDEBUG_SESSION_START="+this.config.callback_debug_key;
+        }
+
+        Utils.Observable.getInstance().dispatch("Debug", {err: "Sending "+JSON.stringify(payload)+" to "+url+""});
         Request(fullUrl, function (error, response, body) {
             if (error || response.statusCode != 200) {
                 Utils.Observable.getInstance().dispatch("Error", {err: new Error("Callback "+url+" error "+body)});

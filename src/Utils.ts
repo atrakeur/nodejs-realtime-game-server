@@ -238,7 +238,9 @@ export class Observable<T> {
         var theHandlers = this.listenerFuncs[internalName];
         if(theHandlers) {
             for(var i = 0; i < theHandlers.length; i++) {
-                theHandlers[i](message);
+                if (theHandlers[i] != null) {
+                    theHandlers[i](message);
+                }
             }
         }
     }

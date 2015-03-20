@@ -36,7 +36,7 @@ export class Server {
         this.io   = Socket.listen(this.http);
 
         this.io.on('connect', this.handleSocket);
-        console.log("Listening on "+this.config.address+":"+this.config.port);
+        Utils.Observable.getInstance().dispatch("Debug", {err: "Listening on "+this.config.address+":"+this.config.port});
     }
 
     public stop() {
@@ -64,9 +64,8 @@ export class Server {
             return Utils.Http.write(responce, 400, JSON.stringify(error));
         }
 
-        //TODO remove that debug line
         if (Object.keys(data).length != 0) {
-            console.log(data);
+            Utils.Observable.getInstance().dispatch("Debug", {err: data});
         }
 
         try {
@@ -103,10 +102,8 @@ export class Server {
     }
 
     handleSocket = (socket: SocketIO.Socket) => {
-        console.log("Connect " + socket.id);
-
         socket.on("message", (message: any) => {
-            console.log(message);
+            Utils.Observable.getInstance().dispatch("Debug", {err: message});
         });
         socket.on('error', (err) => {
             Utils.Observable.getInstance().dispatch("SocketError", {err: err, req: socket});

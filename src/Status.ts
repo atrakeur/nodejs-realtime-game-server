@@ -1,8 +1,9 @@
 import Server  = require("./Server");
 import Http    = require("http");
 import Utils   = require("./Utils");
-var memwatch = require('memwatch');
-var rollbar  = require("rollbar");
+var memwatch    = require('memwatch');
+var rollbar     = require("rollbar");
+var colors: any = require('colors/safe');
 
 /**
  * Server component that respond to status requests
@@ -73,33 +74,54 @@ export class StatusRepository {
             if (config.rollbar_key != "") {
                 rollbar.handleErrorWithPayloadData("Memory Leak", {custom: info});
             } else {
-                console.error("[Leak] "+JSON.stringify(info));
+                console.error(colors.red("[Leak] "+JSON.stringify(info)));
             }
         });
         memwatch.on('stats', (info: any) => {
             if (config.rollbar_key == "") {
-                console.error("[Memstats] "+JSON.stringify(info));
+                console.log(colors.yellow("[Memstats] "+JSON.stringify(info)));
             }
         });
         process.on('uncaughtException', (err) => {
             if (config.rollbar_key != "") {
                 rollbar.handleError(err);
             } else {
-                console.error("[Error] "+err);
+                console.error(colors.red("[UncaughtError] "+err+ " " + JSON.stringify(err.stack)));
+            }
+        });
+        this.observable.addListener("Info", (data) => {
+            if (config.rollbar_key != "") {
+                rollbar.reportMessage(data.err, "info");
+            } else {
+                console.error(colors.green("[Info] "+JSON.stringify(data.err)));
+            }
+        });
+        this.observable.addListener("Debug", (data) => {
+            if (config.rollbar_key != "") {
+                //Don't log to rollbar
+            } else {
+                console.error(colors.green("[Debug] "+JSON.stringify(data.err)));
+            }
+        });
+        this.observable.addListener("Warning", (data) => {
+            if (config.rollbar_key != "") {
+                rollbar.reportMessage(data.err, "warning");
+            } else {
+                console.error(colors.yellow("[Warning] "+JSON.stringify(data.err)));
             }
         });
         this.observable.addListener("Error", (data) => {
             if (config.rollbar_key != "") {
                 rollbar.handleError(data.err);
             } else {
-                console.error("[Error] "+data.err);
+                console.error(colors.red("[Error] "+data.err+ " "+JSON.stringify(data.err)));
             }
         });
         this.observable.addListener("RequestError", (data) => {
             if (config.rollbar_key != "") {
                 rollbar.handleErrorWithPayloadData(data.err, {custom: {data: data.data}}, data.req);
             } else {
-                console.error("[RequestError] "+data.err+";"+data.req);
+                console.error(colors.red("[RequestError] "+JSON.stringify(data.err)+" "+JSON.stringify(data.req)));
             }
         });
         this.observable.addListener("SocketError", (data) => {
@@ -107,7 +129,7 @@ export class StatusRepository {
                 rollbar.handleError(data.err, data.req);
             } else {
                 data.req.emit('error', data.err);
-                console.error("[SocketError] "+data.err);
+                console.error(colors.red("[SocketError] "+JSON.stringify(data.err)));
             }
         });
         this.observable.addListener("Server_stopped", () => {

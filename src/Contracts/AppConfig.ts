@@ -10,6 +10,11 @@ interface AppConfig
     port: number;
 
     /**
+     * Key to debug with callback
+     */
+    callback_debug_key: string;
+
+    /**
      * Secure key to use for private communication
      */
     secure_key: string;

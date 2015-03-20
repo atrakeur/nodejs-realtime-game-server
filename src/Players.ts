@@ -55,7 +55,7 @@ export class PlayerList extends Server.ServerComponent {
     handleWatchdog(counter: number) {
         this.players.foreachValue((key: string, player: Player) => {
             if (!player.isAlive()) {
-                console.log("Removing from watchdog");
+                Utils.Observable.getInstance().dispatch("Debug", {err: "Removing player "+player.getID()+" from watchdog"});
                 Utils.Observable.getInstance().dispatch("Player_removed", player);
                 this.players.remove(key);
             }
@@ -109,7 +109,7 @@ export class PlayerList extends Server.ServerComponent {
 
         //Register disconnect event
         socket.on("disconnect", () => {
-            console.log("Player "+player.getID()+" disconnected!");
+            Utils.Observable.getInstance().dispatch("Debug", {err: "Removing player "+player.getID()+" from watchdog"});
             player.onDisconnect();
             Utils.Observable.getInstance().dispatch("Player_disconnected", player);
         });
