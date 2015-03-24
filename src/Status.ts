@@ -124,7 +124,11 @@ export class StatusRepository {
                 console.error(colors.red("[RequestError] "+JSON.stringify(data.err)+" "+JSON.stringify(data.req)));
             }
         });
-        this.observable.addListener("SocketError", (data) => {
+        this.observable.addListener("SocketError", (data: any) => {
+            if (data.err == undefined) {
+                var data = <any>{err: data};
+            }
+
             if (config.rollbar_key != "") {
                 rollbar.handleError(data.err, data.req);
             } else {

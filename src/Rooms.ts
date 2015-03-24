@@ -109,7 +109,6 @@ export class RoomList extends Server.ServerComponent {
     }
 
     handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, message: Message<RoomConfig>): any {
-
         if (message.name == "Room_create") {
             this.createRoom(message.data);
             return true;
@@ -147,13 +146,13 @@ export class Room {
     public static ROOM_ANNOUNCE = 4 * 60 * 1000;//TIMEOUT to reannounce room
 
     public config: RoomConfig;
-    public players: Utils.Map<string, Players.Player>;
+    public players: Array<string>;
     private lastActivity: number;
     private lastAnnounce: number;
 
     constructor(config: RoomConfig) {
         this.config = config;
-        this.players = new Utils.Map<string, Players.Player>();
+        this.players = [];
     }
 
     public onCreate() {
@@ -166,14 +165,19 @@ export class Room {
 
     public onJoin(player: Players.Player) {
         this.lastActivity = Date.now();
-        this.players.add(player.getID(), player);
+        this.players.push((player.getID()));
         Utils.Observable.getInstance().dispatch("Room_joined", {room: this, player: player});
     }
 
     public onUnJoin(player: Players.Player) {
         this.lastActivity = Date.now();
-        this.players.remove(player.getID());
-        Utils.Observable.getInstance().dispatch("Room_unjoined", {room: this, player: player});
+        var index = this.players.indexOf(player.getID());
+        if (index >= 0) {
+            this.players.splice(index, 1);
+            Utils.Observable.getInstance().dispatch("Room_unjoined", {room: this, player: player});
+        } else {
+            Utils.Observable.getInstance().dispatch("Warning", {err: new Error('Can\'t unjoin non existing room')});
+        }
     }
 
     public onAnnounce() {
@@ -190,12 +194,12 @@ export class Room {
     }
 
     public isAlive(): boolean {
-        return this.players.size() > 0 || this.lastActivity + Room.ROOM_TIMEOUT > Date.now();
+        return this.players.length > 0 || this.lastActivity + Room.ROOM_TIMEOUT > Date.now();
     }
 
     public send(message: any) {
-        this.players.foreachValue((key: string, player: Players.Player) => {
-            player.emit("message", message);
+        this.players.forEach((key: string) => {
+            Utils.Observable.getInstance().dispatch("Message_player", {player: key, message: message});
         });
     }
 

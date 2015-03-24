@@ -34,6 +34,15 @@ export class PlayerList extends Server.ServerComponent {
                 instance.players.remove(key);
             });
         });
+
+        Utils.Observable.getInstance().addListener("Message_player", (data: any) => {
+            var player: Player = this.players.get(data.player);
+            if (player != null) {
+                player.emit("message", data.message);
+            } else {
+                Utils.Observable.getInstance().dispatch("Warning", {err: new Error('Can\'t send to non existing player')});
+            }
+        });
     }
 
     handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: Message<any>): any {
@@ -193,7 +202,5 @@ export class Player {
     public emit(name: string, ...args: any[]) {
         this.socket.emit(name, args);
     }
-
-
 
 }

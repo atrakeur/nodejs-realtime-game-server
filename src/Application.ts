@@ -106,7 +106,7 @@ export class CallbackHandler {
         });
         this.events.addListener("Room_announce", (data: any) => {
             var room : Rooms.Room = data.room;
-            this.sendCallback(room.config.callbackUrl, "Room_announce", {room: room.getID(), players: room.players.getKeys()});
+            this.sendCallback(room.config.callbackUrl, "Room_announce", {room: room.getID(), players: room.players});
         });
     }
 
