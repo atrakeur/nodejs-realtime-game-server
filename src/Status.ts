@@ -22,8 +22,8 @@ export class StatusComponent extends Server.ServerComponent {
         this.repository = new StatusRepository(config, Utils.Observable.getInstance());
     }
 
-    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, data: Message<any>): any {
-        if (request.url == "/status" || request.url == "/") {
+    handleHttp(request: Http.ServerRequest, responce: Http.ServerResponse, message: Message<any>): any {
+        if (request.url == "/status" || request.url == "/" || message.name == "status") {
             var jsonData = {
                 status: "OK",
                 roomCount: this.repository.roomCount,
@@ -121,7 +121,11 @@ export class StatusRepository {
             if (config.rollbar_key != "") {
                 rollbar.handleErrorWithPayloadData(data.err, {custom: {data: data.data}}, data.req);
             } else {
-                console.error(colors.red("[RequestError] "+JSON.stringify(data.err)+" "+JSON.stringify(data.req)));
+                console.error(colors.red("[RequestError] "+data.err+" "+data.req));
+                if (data.err.stack != undefined) {
+                    console.error(colors.red(data.err.stack));
+                }
+                console.error(colors.red(JSON.stringify(data.data)));
             }
         });
         this.observable.addListener("SocketError", (data: any) => {
